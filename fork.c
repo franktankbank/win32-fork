@@ -66,7 +66,7 @@ typedef NTSTATUS (*RtlCloneUserProcess_f)(ULONG ProcessFlags,
 	HANDLE DebugPort /* optional */,
 	PRTL_USER_PROCESS_INFORMATION ProcessInformation);
 
-pid_t fork(void)
+int fork(void)
 {
 	HMODULE mod;
 	RtlCloneUserProcess_f clone_p;
@@ -77,7 +77,7 @@ pid_t fork(void)
 	if (!mod)
 		return -ENOSYS;
 
-	clone_p = GetProcAddress(mod, "RtlCloneUserProcess");
+	clone_p = (RtlCloneUserProcess_f)GetProcAddress(mod, "RtlCloneUserProcess");
 	if (clone_p == NULL)
 		return -ENOSYS;
 
@@ -87,7 +87,7 @@ pid_t fork(void)
 	if (result == RTL_CLONE_PARENT)
 	{
 		HANDLE me = GetCurrentProcess();
-		pid_t child_pid;
+		int child_pid;
 
 		child_pid = GetProcessId(process_info.Process);
 
@@ -113,12 +113,12 @@ pid_t fork(void)
 #ifdef __TEST__
 int main(int argc, const char *argv[])
 {
-	pid_t pid = fork();
+	int pid = fork();
 
 	switch (pid) {
 	case 0:
 	{
-		FILE *f = fopen("C:/Users/nenolod/Documents/forktest.dat", "w");
+		FILE *f = fopen("C:/Users/frank/Documents/forktest.dat", "w");
 		fprintf(f, "ok\n");
 		fclose(f);
 		break;
